@@ -14,6 +14,11 @@ set autoread
 " Set numbers automatically
 set nu
 
+" Set indentation
+set expandtab
+set shiftwidth=2
+set softtabstop=2
+
 " With a map leader it's possible to do extra key combinations
 " like <leader>w saves the current file
 let mapleader = ","
