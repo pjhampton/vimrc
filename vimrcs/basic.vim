@@ -14,11 +14,6 @@ set autoread
 " Set numbers automatically
 set nu
 
-" Set indentation
-set expandtab
-set shiftwidth=2
-set softtabstop=2
-
 " With a map leader it's possible to do extra key combinations
 " like <leader>w saves the current file
 let mapleader = ","
@@ -148,8 +143,8 @@ set expandtab
 set smarttab
 
 " 1 tab == 4 spaces
-set shiftwidth=4
-set tabstop=4
+set shiftwidth=2
+set tabstop=2
 
 " Linebreak on 500 characters
 set lbr
