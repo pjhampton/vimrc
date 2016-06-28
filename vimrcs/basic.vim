@@ -384,3 +384,6 @@ endfunction
 " if has("autocmd")
 "   au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 "endif
+
+" react jsx
+let g:jsx_ext_required = 0
