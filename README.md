@@ -1,6 +1,5 @@
 # The Ultimate vimrc
 
-
 ## How to install the Awesome version?
 The awesome version includes a lot of great plugins, configurations and color schemes that make Vim a lot better. To install it simply do following:
 
@@ -8,28 +7,6 @@ The awesome version includes a lot of great plugins, configurations and color sc
 	sh ~/.vim_runtime/install_awesome_vimrc.sh
 
 I also recommend using [Source Code Pro font from Adobe](http://store1.adobe.com/cfusion/store/html/index.cfm?event=displayFontPackage&code=1960) (it's free and awesome font for writing and programming). The Awesome vimrc is already setup to try to use it
-
-## How to install the Basic version?
-The basic version is basically just one file and no plugins. You can check out [basic.vim](https://github.com/amix/vimrc/blob/master/vimrcs/basic.vim).
-
-This is useful to install on remote servers where you don't need many plugins and you don't do many edits.
-
-	git clone git://github.com/amix/vimrc.git ~/.vim_runtime
-	sh ~/.vim_runtime/install_basic_vimrc.sh
-
-
-## How to install on Windows?
-
-Use [msysgit](http://msysgit.github.com/) to checkout the repository and run the installation instructions above. No special instructions needed ;-)
-
-
-## How to update to latest version?
-
-Simply just do a git rebase!
-
-    cd ~/.vim_runtime
-    git pull --rebase
-
 
 ## Some screenshots
 
@@ -72,15 +49,6 @@ Remove all clutter and focus only on the essential. Similar to iA Writer or Writ
 * [syntastic](https://github.com/scrooloose/syntastic): Syntax checking hacks for vim
 * [vim-yankstack](https://github.com/maxbrunsfeld/vim-yankstack): Maintains a history of previous yanks, changes and deletes
 * [lightline.vim](https://github.com/itchyny/lightline.vim): A light and configurable statusline/tabline for Vim
-
-
-## Included color schemes
-
-* [peaksea](https://github.com/vim-scripts/peaksea): My favorite!
-* [vim-colors-solarized](https://github.com/altercation/vim-colors-solarized)
-* [vim-irblack](https://github.com/wgibbs/vim-irblack)
-* [mayansmoke](https://github.com/vim-scripts/mayansmoke)
-* [vim-pyte](https://github.com/therubymug/vim-pyte)
 
 
 ## Included modes

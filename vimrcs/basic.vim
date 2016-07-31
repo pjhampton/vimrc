@@ -1,389 +1,664 @@
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => General
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Sets how many lines of history VIM has to remember
-set history=300
+" Vim syntax file
+" Language:     Cascading Style Sheets
+" Previous Contributor List:
+"               Claudio Fleiner <claudio@fleiner.com> (Maintainer)
+"               Yeti            (Add full CSS2, HTML4 support)
+"               Nikolai Weibull (Add CSS2 support)
+" Maintainer:   Jules Wang      <w.jq0722@gmail.com>
+" URL:          https://github.com/JulesWang/css.vim
+" Last Change:  2015 Aug.25
 
-" Enable filetype plugins
-filetype plugin on
-filetype indent on
-
-" Set to auto read when a file is changed from the outside
-set autoread
-
-" Set numbers automatically
-set nu
-
-" With a map leader it's possible to do extra key combinations
-" like <leader>w saves the current file
-let mapleader = ","
-let g:mapleader = ","
-
-" Fast saving
-nmap <leader>w :w!<cr>
-
-" :W sudo saves the file 
-" (useful for handling the permission-denied error)
-command W w !sudo tee % > /dev/null
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => VIM user interface
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Set 7 lines to the cursor - when moving vertically using j/k
-set so=7
-
-" Avoid garbled characters in Chinese language windows OS
-let $LANG='en' 
-set langmenu=en
-source $VIMRUNTIME/delmenu.vim
-source $VIMRUNTIME/menu.vim
-
-" Turn on the WiLd menu
-set wildmenu
-
-" Ignore compiled files
-set wildignore=*.o,*~,*.pyc
-if has("win16") || has("win32")
-    set wildignore+=*/.git/*,*/.hg/*,*/.svn/*,*/.DS_Store
-else
-    set wildignore+=.git\*,.hg\*,.svn\*
+" For version 5.x: Clear all syntax items
+" For version 6.x: Quit when a syntax file was already loaded
+if !exists("main_syntax")
+  if version < 600
+    syntax clear
+  elseif exists("b:current_syntax")
+    finish
+  endif
+  let main_syntax = 'css'
+elseif exists("b:current_syntax") && b:current_syntax == "css"
+  finish
 endif
 
-"Always show current position
-set ruler
+let s:cpo_save = &cpo
+set cpo&vim
 
-" Height of the command bar
-set cmdheight=2
+syn case ignore
 
-" A buffer becomes hidden when it is abandoned
-set hid
+" HTML4 tags
+syn keyword cssTagName abbr address area a b base
+syn keyword cssTagName bdo blockquote body br button
+syn keyword cssTagName caption cite code col colgroup dd del
+syn keyword cssTagName dfn div dl dt em fieldset form
+syn keyword cssTagName h1 h2 h3 h4 h5 h6 head hr html img i
+syn keyword cssTagName iframe input ins isindex kbd label legend li
+syn keyword cssTagName link map menu meta noscript ol optgroup
+syn keyword cssTagName option p param pre q s samp script small
+syn keyword cssTagName span strong sub sup tbody td
+syn keyword cssTagName textarea tfoot th thead title tr ul u var
+syn keyword cssTagName object svg
+syn match   cssTagName /\<select\>\|\<style\>\|\<table\>/
 
-" Configure backspace so it acts as it should act
-set backspace=eol,start,indent
-set whichwrap+=<,>,h,l
+" 34 HTML5 tags
+syn keyword cssTagName article aside audio bdi canvas command data
+syn keyword cssTagName datalist details dialog embed figcaption figure footer
+syn keyword cssTagName header hgroup keygen main mark menuitem meter nav
+syn keyword cssTagName output progress rt rp ruby section
+syn keyword cssTagName source summary time track video wbr
 
-" Ignore case when searching
-set ignorecase
+" Tags not supported in HTML5
+" acronym applet basefont big center dir
+" font frame frameset noframes strike tt
 
-" When searching try to be smart about cases 
-set smartcase
+syn match cssTagName "\*"
 
-" Highlight search results
-set hlsearch
+" selectors
+syn match cssSelectorOp "[,>+~]"
+syn match cssSelectorOp2 "[~|^$*]\?=" contained
+syn region cssAttributeSelector matchgroup=cssSelectorOp start="\[" end="]" contains=cssUnicodeEscape,cssSelectorOp2,cssStringQ,cssStringQQ
 
-" Makes search act like search in modern browsers
-set incsearch 
-
-" Don't redraw while executing macros (good performance config)
-set lazyredraw 
-
-" For regular expressions turn magic on
-set magic
-
-" Show matching brackets when text indicator is over them
-set showmatch 
-" How many tenths of a second to blink when matching brackets
-set mat=2
-
-" No annoying sound on errors
-set noerrorbells
-set novisualbell
-set t_vb=
-set tm=500
-
-" Add a bit extra margin to the left
-set foldcolumn=1
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Colors and Fonts
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Enable syntax highlighting
-syntax enable 
+" .class and #id
+syn match cssClassName "\.[A-Za-z][A-Za-z0-9_-]\+" contains=cssClassNameDot
+syn match cssClassNameDot contained '\.'
 
 try
-    colorscheme desert
-catch
+syn match cssIdentifier "#[A-Za-z�-�_@][A-Za-z�-�0-9_@-]*"
+catch /^.*/
+syn match cssIdentifier "#[A-Za-z_@][A-Za-z0-9_@-]*"
 endtry
 
-set background=dark
+" digits and units
+syn match cssValueNumber contained "[-+]\=\d\+\(\.\d*\)\=%\=" contains=cssUnitDecorators
+syn match cssValue contained transparent "[-+]\=\d\+\(\.\d*\)\=\([a-z]\+\)\=\>" contains=cssUnitDecorators,cssValueNumber
 
-" Set extra options when running in GUI mode
-if has("gui_running")
-    set guioptions-=T
-    set guioptions-=e
-    set t_Co=256
-    set guitablabel=%M\ %t
+syn match cssIncludeKeyword /@\(-[a-z]\+-\)\=\(media\|keyframes\|import\|charset\|namespace\|page\)/ contained
+" @media
+syn region cssInclude start=/@media\>/ end=/\ze{/ skipwhite skipnl contains=cssMediaProp,cssValueLength,cssMediaKeyword,cssValueInteger,cssMediaAttr,cssVendor,cssMediaType,cssIncludeKeyword,cssMediaComma,cssComment nextgroup=cssMediaBlock
+syn keyword cssMediaType contained screen print aural braille embossed handheld projection tty tv speech all contained skipwhite skipnl
+syn keyword cssMediaKeyword only not and contained
+syn region cssMediaBlock transparent matchgroup=cssBraces start='{' end='}' contains=css.*Attr,css.*Prop,cssComment,cssValue,cssColor,cssURL,cssImportant,cssError,cssStringQ,cssStringQQ,cssFunction,cssUnicodeEscape,cssVendor,cssDefinition,cssTagName,cssClassName,cssIdentifier,cssPseudoClass,cssSelectorOp,cssSelectorOp2,cssAttributeSelector fold
+syn match cssMediaComma "," skipwhite skipnl contained
+
+" Reference: http://www.w3.org/TR/css3-mediaqueries/
+syn keyword cssMediaProp contained width height orientation scan grid
+syn match cssMediaProp contained /\(\(max\|min\)-\)\=\(\(device\)-\)\=aspect-ratio/
+syn match cssMediaProp contained /\(\(max\|min\)-\)\=device-pixel-ratio/
+syn match cssMediaProp contained /\(\(max\|min\)-\)\=device-\(height\|width\)/
+syn match cssMediaProp contained /\(\(max\|min\)-\)\=\(height\|width\|resolution\|monochrome\|color\(-index\)\=\)/
+syn keyword cssMediaAttr contained portrait landscape progressive interlace
+
+" @page
+" http://www.w3.org/TR/css3-page/
+syn match cssPage "@page\>[^{]*{\@=" contains=cssPagePseudo,cssIncludeKeyword nextgroup=cssPageWrap transparent skipwhite skipnl
+syn match cssPagePseudo /:\(left\|right\|first\|blank\)/ contained skipwhite skipnl
+syn region cssPageWrap contained transparent matchgroup=cssBraces start="{" end="}" contains=cssPageMargin,cssPageProp,cssAttrRegion,css.*Prop,cssComment,cssValue,cssColor,cssURL,cssImportant,cssError,cssStringQ,cssStringQQ,cssFunction,cssUnicodeEscape,cssVendor,cssDefinition,cssHacks
+syn match cssPageMargin /@\(\(top\|left\|right\|bottom\)-\(left\|center\|right\|middle\|bottom\)\)\(-corner\)\=/ contained nextgroup=cssDefinition skipwhite skipnl
+syn keyword cssPageProp contained content size
+" http://www.w3.org/TR/CSS2/page.html#break-inside
+syn keyword cssPageProp contained orphans widows
+
+" @keyframe
+" http://www.w3.org/TR/css3-animations/#keyframes
+syn match cssKeyFrame "@\(-[a-z]\+-\)\=keyframes\>[^{]*{\@=" nextgroup=cssKeyFrameWrap contains=cssVendor,cssIncludeKeyword skipwhite skipnl transparent
+syn region cssKeyFrameWrap contained transparent matchgroup=cssBraces start="{" end="}" contains=cssKeyFrameSelector
+syn match cssKeyFrameSelector /\([-+]\=\d\+\(\.\d*\)\=%\|from\|to\)\=/  contained skipwhite skipnl nextgroup=cssDefinition
+
+" @import
+syn region cssInclude start=/@import\>/    end=/\ze;/ transparent contains=cssStringQ,cssStringQQ,cssUnicodeEscape,cssComment,cssIncludeKeyword,cssURL,cssMediaProp,cssValueLength,cssMediaKeyword,cssValueInteger,cssMediaAttr,cssVendor,cssMediaType
+syn region cssInclude start=/@charset\>/   end=/\ze;/ transparent contains=cssStringQ,cssStringQQ,cssUnicodeEscape,cssComment,cssIncludeKeyword
+syn region cssInclude start=/@namespace\>/ end=/\ze;/ transparent contains=cssStringQ,cssStringQQ,cssUnicodeEscape,cssComment,cssIncludeKeyword
+
+" @font-face
+" http://www.w3.org/TR/css3-fonts/#at-font-face-rule
+syn match cssFontDescriptor "@font-face\>" nextgroup=cssFontDescriptorBlock skipwhite skipnl
+syn region cssFontDescriptorBlock contained transparent matchgroup=cssBraces start="{" end="}" contains=cssComment,cssError,cssUnicodeEscape,cssCommonAttr,cssFontDescriptorProp,cssValue,cssFontDescriptorFunction,cssFontDescriptorAttr,cssNoise
+
+syn match cssFontDescriptorProp contained "\<font-family\>"
+syn keyword cssFontDescriptorProp contained src
+syn match cssFontDescriptorProp contained "\<font-\(style\|weight\|stretch\)\>"
+syn match cssFontDescriptorProp contained "\<unicode-range\>"
+syn match cssFontDescriptorProp contained "\<font-\(variant\|feature-settings\)\>"
+
+" src functions
+syn region cssFontDescriptorFunction contained matchgroup=cssFunctionName start="\<\(uri\|url\|local\|format\)\s*(" end=")" contains=cssStringQ,cssStringQQ oneline keepend
+" font-sytle and font-weight attributes
+syn keyword cssFontDescriptorAttr contained normal italic oblique bold
+" font-stretch attributes
+syn match cssFontDescriptorAttr contained "\<\(\(ultra\|extra\|semi\)-\)\=\(condensed\|expanded\)\>"
+" unicode-range attributes
+syn match cssFontDescriptorAttr contained "U+[0-9A-Fa-f?]\+"
+syn match cssFontDescriptorAttr contained "U+\x\+-\x\+"
+" font-feature-settings attributes
+syn keyword cssFontDescriptorAttr contained on off
+
+
+
+" The 16 basic color names
+syn keyword cssColor contained aqua black blue fuchsia gray green lime maroon navy olive purple red silver teal yellow
+
+" 130 more color names
+syn keyword cssColor contained aliceblue antiquewhite aquamarine azure
+syn keyword cssColor contained beige bisque blanchedalmond blueviolet brown burlywood
+syn keyword cssColor contained cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan
+syn match cssColor contained /\<dark\(blue\|cyan\|goldenrod\|gray\|green\|grey\|khaki\)\>/
+syn match cssColor contained /\<dark\(magenta\|olivegreen\|orange\|orchid\|red\|salmon\|seagreen\)\>/
+syn match cssColor contained /\<darkslate\(blue\|gray\|grey\)\>/
+syn match cssColor contained /\<dark\(turquoise\|violet\)\>/
+syn keyword cssColor contained deeppink deepskyblue dimgray dimgrey dodgerblue firebrick
+syn keyword cssColor contained floralwhite forestgreen gainsboro ghostwhite gold
+syn keyword cssColor contained goldenrod greenyellow grey honeydew hotpink
+syn keyword cssColor contained indianred indigo ivory khaki lavender lavenderblush lawngreen
+syn keyword cssColor contained lemonchiffon limegreen linen magenta
+syn match cssColor contained /\<light\(blue\|coral\|cyan\|goldenrodyellow\|gray\|green\)\>/
+syn match cssColor contained /\<light\(grey\|pink\|salmon\|seagreen\|skyblue\|yellow\)\>/
+syn match cssColor contained /\<light\(slategray\|slategrey\|steelblue\)\>/
+syn match cssColor contained /\<medium\(aquamarine\|blue\|orchid\|purple\|seagreen\)\>/
+syn match cssColor contained /\<medium\(slateblue\|springgreen\|turquoise\|violetred\)\>/
+syn keyword cssColor contained midnightblue mintcream mistyrose moccasin navajowhite
+syn keyword cssColor contained oldlace olivedrab orange orangered orchid
+syn match cssColor contained /\<pale\(goldenrod\|green\|turquoise\|violetred\)\>/
+syn keyword cssColor contained papayawhip peachpuff peru pink plum powderblue
+syn keyword cssColor contained rosybrown royalblue rebeccapurple saddlebrown salmon
+syn keyword cssColor contained sandybrown seagreen seashell sienna skyblue slateblue
+syn keyword cssColor contained slategray slategrey snow springgreen steelblue tan
+syn keyword cssColor contained thistle tomato turquoise violet wheat
+syn keyword cssColor contained whitesmoke yellowgreen
+
+" FIXME: These are actually case-insensitive too, but (a) specs recommend using
+" mixed-case (b) it's hard to highlight the word `Background' correctly in
+" all situations
+syn case match
+syn keyword cssColor contained ActiveBorder ActiveCaption AppWorkspace ButtonFace ButtonHighlight ButtonShadow ButtonText CaptionText GrayText Highlight HighlightText InactiveBorder InactiveCaption InactiveCaptionText InfoBackground InfoText Menu MenuText Scrollbar ThreeDDarkShadow ThreeDFace ThreeDHighlight ThreeDLightShadow ThreeDShadow Window WindowFrame WindowText Background
+syn case ignore
+
+syn match cssImportant contained "!\s*important\>"
+
+syn match cssColor contained "\<transparent\>"
+syn match cssColor contained "\<currentColor\>"
+syn match cssColor contained "\<white\>"
+syn match cssColor contained "#[0-9A-Fa-f]\{3\}\>" contains=cssUnitDecorators
+syn match cssColor contained "#[0-9A-Fa-f]\{6\}\>" contains=cssUnitDecorators
+
+syn region cssURL contained matchgroup=cssFunctionName start="\<url\s*(" end=")" contains=cssStringQ,cssStringQQ oneline
+syn region cssFunction contained matchgroup=cssFunctionName start="\<\(rgb\|clip\|attr\|counter\|rect\|cubic-bezier\|steps\)\s*(" end=")" oneline  contains=cssValue,cssFunctionComma
+syn region cssFunction contained matchgroup=cssFunctionName start="\<\(rgba\|hsl\|hsla\|color-stop\|from\|to\)\s*(" end=")" oneline  contains=cssColor,cssValue,cssFunctionComma,cssFunction
+syn region cssFunction contained matchgroup=cssFunctionName start="\<\(linear-\|radial-\)\=\gradient\s*(" end=")" oneline  contains=cssColor,cssValue,cssFunction,cssGradientAttr,cssFunctionComma
+syn region cssFunction contained matchgroup=cssFunctionName start="\<\(matrix\(3d\)\=\|scale\(3d\|X\|Y\|Z\)\=\|translate\(3d\|X\|Y\|Z\)\=\|skew\(X\|Y\)\=\|rotate\(3d\|X\|Y\|Z\)\=\|perspective\)\s*(" end=")" oneline contains=cssValueInteger,cssValue,cssFunctionComma
+syn keyword cssGradientAttr contained top bottom left right cover center middle ellipse at
+syn match cssFunctionComma contained ","
+
+" Common Prop and Attr
+syn keyword cssCommonAttr contained auto none inherit all default normal
+syn keyword cssCommonAttr contained top bottom center stretch hidden visible
+"------------------------------------------------
+" CSS Animations
+" http://www.w3.org/TR/css3-animations/
+syn match cssAnimationProp contained "\<animation\(-\(delay\|direction\|duration\|fill-mode\|name\|play-state\|timing-function\|iteration-count\)\)\=\>"
+
+" animation-direction attributes
+syn keyword cssAnimationAttr contained alternate reverse
+syn match cssAnimationAttr contained "\<alternate-reverse\>"
+
+" animation-fill-mode attributes
+syn keyword cssAnimationAttr contained forwards backwards both
+
+" animation-play-state attributes
+syn keyword cssAnimationAttr contained running paused
+
+" animation-iteration-count attributes
+syn keyword cssAnimationAttr contained infinite
+"------------------------------------------------
+"  CSS Backgrounds and Borders Module Level 3
+"  http://www.w3.org/TR/css3-background/
+syn match cssBackgroundProp contained "\<background\(-\(attachment\|clip\|color\|image\|origin\|position\|repeat\|size\)\)\=\>"
+" background-attachment attributes
+syn keyword cssBackgroundAttr contained scroll fixed local
+
+" background-position attributes
+syn keyword cssBackgroundAttr contained left center right top bottom
+
+" background-repeat attributes
+syn match cssBackgroundAttr contained "\<no-repeat\>"
+syn match cssBackgroundAttr contained "\<repeat\(-[xy]\)\=\>"
+
+" background-size attributes
+syn keyword cssBackgroundAttr contained cover contain
+
+syn match cssBorderProp contained "\<border\(-\(top\|right\|bottom\|left\)\)\=\(-\(width\|color\|style\)\)\=\>"
+syn match cssBorderProp contained "\<border\(-\(top\|bottom\)-\(left\|right\)\)\=-radius\>"
+syn match cssBorderProp contained "\<border-image\(-\(outset\|repeat\|slice\|source\|width\)\)\=\>"
+syn match cssBorderProp contained "\<box-decoration-break\>"
+syn match cssBorderProp contained "\<box-shadow\>"
+
+" border-image attributes
+syn keyword cssBorderAttr contained stretch round fill
+
+" border-style attributes
+syn keyword cssBorderAttr contained dotted dashed solid double groove ridge inset outset
+
+" border-width attributes
+syn keyword cssBorderAttr contained thin thick medium
+
+" box-decoration-break attributes
+syn keyword cssBorderAttr contained clone slice
+"------------------------------------------------
+
+syn match cssBoxProp contained "\<padding\(-\(top\|right\|bottom\|left\)\)\=\>"
+syn match cssBoxProp contained "\<margin\(-\(top\|right\|bottom\|left\)\)\=\>"
+syn match cssBoxProp contained "\<overflow\(-\(x\|y\|style\)\)\=\>"
+syn match cssBoxProp contained "\<rotation\(-point\)\=\>"
+syn keyword cssBoxAttr contained visible hidden scroll auto
+syn match cssBoxAttr contained "\<no-\(display\|content\)\>"
+
+syn keyword cssColorProp contained opacity
+syn match cssColorProp contained "\<color-profile\>"
+syn match cssColorProp contained "\<rendering-intent\>"
+
+
+syn match cssDimensionProp contained "\<\(min\|max\)-\(width\|height\)\>"
+syn keyword cssDimensionProp contained height
+syn keyword cssDimensionProp contained width
+
+" CSS Flexible Box Layout Module Level 1
+" http://www.w3.org/TR/css3-flexbox/
+" CSS Box Alignment Module Level 3
+" http://www.w3.org/TR/css-align-3/
+syn match cssFlexibleBoxProp contained "\<flex\(-\(direction\|wrap\|flow\|grow\|shrink\|basis\)\)\=\>"
+syn match cssFlexibleBoxProp contained "\<\(align\|justify\)\(-\(items\|self\|content\)\)\=\>"
+syn keyword cssFlexibleBoxProp contained order
+
+syn match cssFlexibleBoxAttr contained "\<\(row\|column\|wrap\)\(-reverse\)\=\>"
+syn keyword cssFlexibleBoxAttr contained nowrap stretch baseline center
+syn match cssFlexibleBoxAttr contained "\<flex\(-\(start\|end\)\)\=\>"
+syn match cssFlexibleBoxAttr contained "\<space\(-\(between\|around\)\)\=\>"
+
+" CSS Fonts Module Level 3
+" http://www.w3.org/TR/css-fonts-3/
+syn match cssFontProp contained "\<font\(-\(family\|\|feature-settings\|kerning\|language-override\|size\(-adjust\)\=\|stretch\|style\|synthesis\|variant\(-\(alternates\|caps\|east-asian\|ligatures\|numeric\|position\)\)\=\|weight\)\)\=\>"
+
+" font attributes
+syn keyword cssFontAttr contained icon menu caption
+syn match cssFontAttr contained "\<small-\(caps\|caption\)\>"
+syn match cssFontAttr contained "\<message-box\>"
+syn match cssFontAttr contained "\<status-bar\>"
+syn keyword cssFontAttr contained larger smaller
+syn match cssFontAttr contained "\<\(x\{1,2\}-\)\=\(large\|small\)\>"
+" font-family attributes
+syn match cssFontAttr contained "\<\(sans-\)\=serif\>"
+syn keyword cssFontAttr contained Antiqua Arial Black Book Charcoal Comic Courier Dingbats Gadget Geneva Georgia Grande Helvetica Impact Linotype Lucida MS Monaco Neue New Palatino Roboto Roman Symbol Tahoma Times Trebuchet Verdana Webdings Wingdings York Zapf
+syn keyword cssFontAttr contained cursive fantasy monospace
+" font-feature-settings attributes
+syn keyword cssFontAttr contained on off
+" font-stretch attributes
+syn match cssFontAttr contained "\<\(\(ultra\|extra\|semi\)-\)\=\(condensed\|expanded\)\>"
+" font-style attributes
+syn keyword cssFontAttr contained italic oblique
+" font-synthesis attributes
+syn keyword cssFontAttr contained weight style
+" font-weight attributes
+syn keyword cssFontAttr contained bold bolder lighter
+" TODO: font-variant-* attributes
+"------------------------------------------------
+
+" Webkit specific property/attributes
+syn match cssFontProp contained "\<font-smooth\>"
+syn match cssFontAttr contained "\<\(subpixel-\)\=\antialiased\>"
+
+
+" CSS Multi-column Layout Module
+" http://www.w3.org/TR/css3-multicol/
+syn match cssMultiColumnProp contained "\<break-\(after\|before\|inside\)\>"
+syn match cssMultiColumnProp contained "\<column-\(count\|fill\|gap\|rule\(-\(color\|style\|width\)\)\=\|span\|width\)\>"
+syn keyword cssMultiColumnProp contained columns
+syn keyword cssMultiColumnAttr contained balance medium
+syn keyword cssMultiColumnAttr contained always left right page column
+syn match cssMultiColumnAttr contained "\<avoid\(-\(page\|column\)\)\=\>"
+
+" http://www.w3.org/TR/css3-break/#page-break
+syn match cssMultiColumnProp contained "\<page\(-break-\(before\|after\|inside\)\)\=\>"
+
+" http://www.w3.org/TR/SVG11/interact.html
+syn match cssInteractProp contained "\<pointer-events\>"
+syn match cssInteractAttr contained "\<\(visible\)\=\(Painted\|Fill\|Stroke\)\=\>"
+
+" TODO find following items in w3c docs.
+syn keyword cssGeneratedContentProp contained quotes crop
+syn match cssGeneratedContentProp contained "\<counter-\(reset\|increment\)\>"
+syn match cssGeneratedContentProp contained "\<move-to\>"
+syn match cssGeneratedContentProp contained "\<page-policy\>"
+syn match cssGeneratedContentAttr contained "\<\(no-\)\=\(open\|close\)-quote\>"
+
+syn match cssGridProp contained "\<grid-\(columns\|rows\)\>"
+
+syn match cssHyerlinkProp contained "\<target\(-\(name\|new\|position\)\)\=\>"
+
+syn match cssListProp contained "\<list-style\(-\(type\|position\|image\)\)\=\>"
+syn match cssListAttr contained "\<\(lower\|upper\)-\(roman\|alpha\|greek\|latin\)\>"
+syn match cssListAttr contained "\<\(hiragana\|katakana\)\(-iroha\)\=\>"
+syn match cssListAttr contained "\<\(decimal\(-leading-zero\)\=\|cjk-ideographic\)\>"
+syn keyword cssListAttr contained disc circle square hebrew armenian georgian
+syn keyword cssListAttr contained inside outside
+
+syn keyword cssPositioningProp contained bottom clear clip display float left
+syn keyword cssPositioningProp contained position right top visibility
+syn match cssPositioningProp contained "\<z-index\>"
+syn keyword cssPositioningAttr contained block compact
+syn match cssPositioningAttr contained "\<table\(-\(row-group\|\(header\|footer\)-group\|row\|column\(-group\)\=\|cell\|caption\)\)\=\>"
+syn keyword cssPositioningAttr contained left right both
+syn match cssPositioningAttr contained "\<list-item\>"
+syn match cssPositioningAttr contained "\<inline\(-\(block\|box\|table\)\)\=\>"
+syn keyword cssPositioningAttr contained static relative absolute fixed
+
+syn keyword cssPrintAttr contained landscape portrait crop cross always
+
+syn match cssTableProp contained "\<\(caption-side\|table-layout\|border-collapse\|border-spacing\|empty-cells\)\>"
+syn keyword cssTableAttr contained fixed collapse separate show hide once always
+
+
+syn keyword cssTextProp contained color direction
+syn match cssTextProp "\<\(\(word\|letter\)-spacing\|text\(-\(decoration\|transform\|align\|index\|shadow\)\)\=\|vertical-align\|unicode-bidi\|line-height\)\>"
+syn match cssTextProp contained "\<text-\(justify\|outline\|warp\|align-last\|size-adjust\|rendering\|stroke\|indent\)\>"
+syn match cssTextProp contained "\<word-\(break\|\wrap\)\>"
+syn match cssTextProp contained "\<white-space\>"
+syn match cssTextProp contained "\<hanging-punctuation\>"
+syn match cssTextProp contained "\<punctuation-trim\>"
+syn match cssTextAttr contained "\<line-through\>"
+syn match cssTextAttr contained "\<\(text-\)\=\(top\|bottom\)\>"
+syn keyword cssTextAttr contained ltr rtl embed nowrap
+syn keyword cssTextAttr contained underline overline blink sub super middle
+syn keyword cssTextAttr contained capitalize uppercase lowercase
+syn keyword cssTextAttr contained justify baseline sub super
+syn keyword cssTextAttr contained optimizeLegibility optimizeSpeed
+syn match cssTextAttr contained "\<pre\(-\(line\|wrap\)\)\=\>"
+syn match cssTextAttr contained "\<\(allow\|force\)-end\>"
+syn keyword cssTextAttr contained start end adjacent
+syn match cssTextAttr contained "\<inter-\(word\|ideographic\|cluster\)\>"
+syn keyword cssTextAttr contained distribute kashida first last
+syn keyword cssTextAttr contained clip ellipsis unrestricted suppress
+syn match cssTextAttr contained "\<break-all\>"
+syn match cssTextAttr contained "\<break-word\>"
+syn keyword cssTextAttr contained hyphenate
+syn match cssTextAttr contained "\<bidi-override\>"
+
+syn match cssTransformProp contained "\<transform\(-\(origin\|style\)\)\=\>"
+syn match cssTransformProp contained "\<perspective\(-origin\)\=\>"
+syn match cssTransformProp contained "\<backface-visibility\>"
+
+" CSS Transitions
+" http://www.w3.org/TR/css3-transitions/
+syn match cssTransitionProp contained "\<transition\(-\(delay\|duration\|property\|timing-function\)\)\=\>"
+
+" transition-time-function attributes
+syn match cssTransitionAttr contained "\<linear\(-gradient\)\@!\>"
+syn match cssTransitionAttr contained "\<ease\(-\(in-out\|out\|in\)\)\=\>"
+syn match cssTransitionAttr contained "\<step\(-start\|-end\)\=\>"
+"------------------------------------------------
+" CSS Basic User Interface Module Level 3 (CSS3 UI)
+" http://www.w3.org/TR/css3-ui/
+syn match cssUIProp contained "\<box-sizing\>"
+syn match cssUIAttr contained "\<\(content\|padding\|border\)\(-box\)\=\>"
+
+syn keyword cssUIProp contained cursor
+syn match cssUIAttr contained "\<\(\([ns]\=[ew]\=\)\|col\|row\|nesw\|nwse\)-resize\>"
+syn keyword cssUIAttr contained crosshair help move pointer alias copy
+syn keyword cssUIAttr contained progress wait text cell move
+syn match cssUIAttr contained "\<context-menu\>"
+syn match cssUIAttr contained "\<no-drop\>"
+syn match cssUIAttr contained "\<not-allowed\>"
+syn match cssUIAttr contained "\<all-scroll\>"
+syn match cssUIAttr contained "\<\(vertical-\)\=text\>"
+syn match cssUIAttr contained "\<zoom\(-in\|-out\)\=\>"
+
+syn match cssUIProp contained "\<ime-mode\>"
+syn keyword cssUIAttr contained active inactive disabled
+
+syn match cssUIProp contained "\<nav-\(down\|index\|left\|right\|up\)\=\>"
+syn match cssUIProp contained "\<outline\(-\(width\|style\|color\|offset\)\)\=\>"
+syn keyword cssUIAttr contained invert
+
+syn keyword cssUIProp contained icon resize
+syn keyword cssUIAttr contained both horizontal vertical
+
+syn match cssUIProp contained "\<text-overflow\>"
+syn keyword cssUIAttr contained clip ellipsis
+
+syn match cssUIProp contained "\<image-rendering\>"
+syn keyword cssUIAttr contained pixellated
+syn match cssUIAttr contained "\<crisp-edges\>"
+
+" Already highlighted Props: font content
+"------------------------------------------------
+" Webkit/iOS specific attributes
+syn match cssUIAttr contained '\(preserve-3d\)'
+" IE specific attributes
+syn match cssIEUIAttr contained '\(bicubic\)'
+
+" Webkit/iOS specific properties
+syn match cssUIProp contained '\(tap-highlight-color\|user-select\|touch-callout\)'
+" IE specific properties
+syn match cssIEUIProp contained '\(interpolation-mode\|zoom\|filter\)'
+
+" Webkit/Firebox specific properties/attributes
+syn keyword cssUIProp contained appearance
+syn keyword cssUIAttr contained window button field icon document menu
+
+
+syn match cssAuralProp contained "\<\(pause\|cue\)\(-\(before\|after\)\)\=\>"
+syn match cssAuralProp contained "\<\(play-during\|speech-rate\|voice-family\|pitch\(-range\)\=\|speak\(-\(punctuation\|numeral\|header\)\)\=\)\>"
+syn keyword cssAuralProp contained volume during azimuth elevation stress richness
+syn match cssAuralAttr contained "\<\(x-\)\=\(soft\|loud\)\>"
+syn keyword cssAuralAttr contained silent
+syn match cssAuralAttr contained "\<spell-out\>"
+syn keyword cssAuralAttr contained non mix
+syn match cssAuralAttr contained "\<\(left\|right\)-side\>"
+syn match cssAuralAttr contained "\<\(far\|center\)-\(left\|center\|right\)\>"
+syn keyword cssAuralAttr contained leftwards rightwards behind
+syn keyword cssAuralAttr contained below level above lower higher
+syn match cssAuralAttr contained "\<\(x-\)\=\(slow\|fast\|low\|high\)\>"
+syn keyword cssAuralAttr contained faster slower
+syn keyword cssAuralAttr contained male female child code digits continuous
+
+" mobile text
+syn match cssMobileTextProp contained "\<text-size-adjust\>"
+
+
+
+syn match cssBraces contained "[{}]"
+syn match cssError contained "{@<>"
+syn region cssDefinition transparent matchgroup=cssBraces start='{' end='}' contains=cssAttrRegion,css.*Prop,cssComment,cssValue,cssColor,cssURL,cssImportant,cssError,cssStringQ,cssStringQQ,cssFunction,cssUnicodeEscape,cssVendor,cssDefinition,cssHacks,cssNoise fold
+syn match cssBraceError "}"
+syn match cssAttrComma ","
+
+" Pseudo class
+" http://www.w3.org/TR/css3-selectors/
+syn match cssPseudoClass ":[A-Za-z0-9_-]*" contains=cssNoise,cssPseudoClassId,cssUnicodeEscape,cssVendor,cssPseudoClassFn
+syn keyword cssPseudoClassId contained link visited active hover before after left right
+syn keyword cssPseudoClassId contained root empty target enable disabled checked invalid
+syn match cssPseudoClassId contained "\<first-\(line\|letter\)\>"
+syn match cssPseudoClassId contained "\<\(first\|last\|only\)-\(of-type\|child\)\>"
+syn region cssPseudoClassFn contained matchgroup=cssFunctionName start="\<\(not\|lang\|\(nth\|nth-last\)-\(of-type\|child\)\)(" end=")"
+" ------------------------------------
+" Vendor specific properties
+syn match cssPseudoClassId contained  "\<selection\>"
+syn match cssPseudoClassId contained  "\<focus\(-inner\)\=\>"
+syn match cssPseudoClassId contained  "\<\(input-\)\=placeholder\>"
+
+" Misc highlight groups
+syntax match cssUnitDecorators /\(#\|-\|+\|%\|mm\|cm\|in\|pt\|pc\|em\|ex\|px\|ch\|rem\|vh\|vw\|vmin\|vmax\|dpi\|dppx\|dpcm\|Hz\|kHz\|s\|ms\|deg\|grad\|rad\)/ contained
+syntax match cssNoise contained /\(:\|;\|\/\)/
+
+" Comment
+syn region cssComment start="/\*" end="\*/" contains=@Spell fold
+
+syn match cssUnicodeEscape "\\\x\{1,6}\s\?"
+syn match cssSpecialCharQQ +\\\\\|\\"+ contained
+syn match cssSpecialCharQ +\\\\\|\\'+ contained
+syn region cssStringQQ start=+"+ skip=+\\\\\|\\"+ end=+"+ contains=cssUnicodeEscape,cssSpecialCharQQ
+syn region cssStringQ start=+'+ skip=+\\\\\|\\'+ end=+'+ contains=cssUnicodeEscape,cssSpecialCharQ
+
+" Vendor Prefix
+syn match cssVendor contained "\(-\(webkit\|moz\|o\|ms\)-\)"
+
+" Various CSS Hack characters
+" In earlier versions of IE (6 and 7), one can prefix property names
+" with a _ or * to isolate those definitions to particular versions of IE
+" This is purely decorative and therefore we assign to the same highlight
+" group to cssVendor, for more information:
+" http://www.paulirish.com/2009/browser-specific-css-hacks/
+syn match cssHacks contained /\(_\|*\)/
+
+" Attr Enhance
+" Some keywords are both Prop and Attr, so we have to handle them
+syn region cssAttrRegion start=/:/ end=/\ze\(;\|)\|}\)/ contained contains=css.*Attr,cssColor,cssImportant,cssValue,cssFunction,cssString.*,cssURL,cssComment,cssUnicodeEscape,cssVendor,cssError,cssAttrComma,cssNoise
+
+" Hack for transition
+" 'transition' has Props after ':'.
+syn region cssAttrRegion start=/transition\s*:/ end=/\ze\(;\|)\|}\)/ contained contains=css.*Prop,css.*Attr,cssColor,cssImportant,cssValue,cssFunction,cssString.*,cssURL,cssComment,cssUnicodeEscape,cssVendor,cssError,cssAttrComma,cssNoise
+
+
+if main_syntax == "css"
+  syn sync minlines=10
 endif
 
-" Set utf8 as standard encoding and en_US as the standard language
-set encoding=utf8
+" Define the default highlighting.
+" For version 5.7 and earlier: only when not done already
+" For version 5.8 and later: only when an item doesn't have highlighting yet
+if version >= 508 || !exists("did_css_syn_inits")
+  if version < 508
+    let did_css_syn_inits = 1
+    command -nargs=+ HiLink hi link <args>
+  else
+    command -nargs=+ HiLink hi def link <args>
+  endif
 
-" Use Unix as the standard file type
-set ffs=unix,dos,mac
+  HiLink cssComment Comment
+  HiLink cssVendor Comment
+  HiLink cssHacks Comment
+  HiLink cssTagName Statement
+  HiLink cssDeprecated Error
+  HiLink cssSelectorOp Special
+  HiLink cssSelectorOp2 Special
+  HiLink cssAttrComma Special
 
+  HiLink cssAnimationProp cssProp
+  HiLink cssAuralProp cssProp
+  HiLink cssBackgroundProp cssProp
+  HiLink cssBorderProp cssProp
+  HiLink cssBoxProp cssProp
+  HiLink cssColorProp cssProp
+  HiLink cssContentForPagedMediaProp cssProp
+  HiLink cssDimensionProp cssProp
+  HiLink cssFlexibleBoxProp cssProp
+  HiLink cssFontProp cssProp
+  HiLink cssGeneratedContentProp cssProp
+  HiLink cssGridProp cssProp
+  HiLink cssHyerlinkProp cssProp
+  HiLink cssIEUIProp cssProp
+  HiLink cssInteractProp cssProp
+  HiLink cssLineboxProp cssProp
+  HiLink cssListProp cssProp
+  HiLink cssMarqueeProp cssProp
+  HiLink cssMobileTextProp cssProp
+  HiLink cssMultiColumnProp cssProp
+  HiLink cssPagedMediaProp cssProp
+  HiLink cssPositioningProp cssProp
+  HiLink cssPrintProp cssProp
+  HiLink cssRenderProp cssProp
+  HiLink cssRubyProp cssProp
+  HiLink cssSpeechProp cssProp
+  HiLink cssTableProp cssProp
+  HiLink cssTextProp cssProp
+  HiLink cssTransformProp cssProp
+  HiLink cssTransitionProp cssProp
+  HiLink cssUIProp cssProp
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Files, backups and undo
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Turn backup off, since most stuff is in SVN, git et.c anyway...
-set nobackup
-set nowb
-set noswapfile
+  HiLink cssAnimationAttr cssAttr
+  HiLink cssAuralAttr cssAttr
+  HiLink cssBackgroundAttr cssAttr
+  HiLink cssBorderAttr cssAttr
+  HiLink cssBoxAttr cssAttr
+  HiLink cssContentForPagedMediaAttr cssAttr
+  HiLink cssCommonAttr cssAttr
+  HiLink cssDimensionAttr cssAttr
+  HiLink cssFlexibleBoxAttr cssAttr
+  HiLink cssFontAttr cssAttr
+  HiLink cssGeneratedContentAttr cssAttr
+  HiLink cssGridAttr cssAttr
+  HiLink cssHyerlinkAttr cssAttr
+  HiLink cssIEUIAttr cssAttr
+  HiLink cssInteractAttr cssAttr
+  HiLink cssLineboxAttr cssAttr
+  HiLink cssListAttr cssAttr
+  HiLink cssMarginAttr cssAttr
+  HiLink cssMarqueeAttr cssAttr
+  HiLink cssMultiColumnAttr cssAttr
+  HiLink cssPaddingAttr cssAttr
+  HiLink cssPagedMediaAttr cssAttr
+  HiLink cssPositioningAttr cssAttr
+  HiLink cssGradientAttr cssAttr
+  HiLink cssPrintAttr cssAttr
+  HiLink cssRenderAttr cssAttr
+  HiLink cssRubyAttr cssAttr
+  HiLink cssSpeechAttr cssAttr
+  HiLink cssTableAttr cssAttr
+  HiLink cssTextAttr cssAttr
+  HiLink cssTransformAttr cssAttr
+  HiLink cssTransitionAttr cssAttr
+  HiLink cssUIAttr cssAttr
 
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Text, tab and indent related
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Use spaces instead of tabs
-set expandtab
-
-" Be smart when using tabs ;)
-set smarttab
-
-" 1 tab == 4 spaces
-set shiftwidth=2
-set tabstop=2
-
-" Linebreak on 500 characters
-set lbr
-set tw=500
-
-set ai "Auto indent
-set si "Smart indent
-set wrap "Wrap lines
-
-
-""""""""""""""""""""""""""""""
-" => Visual mode related
-""""""""""""""""""""""""""""""
-" Visual mode pressing * or # searches for the current selection
-" Super useful! From an idea by Michael Naumann
-vnoremap <silent> * :<C-u>call VisualSelection('', '')<CR>/<C-R>=@/<CR><CR>
-vnoremap <silent> # :<C-u>call VisualSelection('', '')<CR>?<C-R>=@/<CR><CR>
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Moving around, tabs, windows and buffers
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Treat long lines as break lines (useful when moving around in them)
-map j gj
-map k gk
-
-" Map <Space> to / (search) and Ctrl-<Space> to ? (backwards search)
-map <space> /
-map <c-space> ?
-
-" Disable highlight when <leader><cr> is pressed
-map <silent> <leader><cr> :noh<cr>
-
-" Smart way to move between windows
-map <C-j> <C-W>j
-map <C-k> <C-W>k
-map <C-h> <C-W>h
-map <C-l> <C-W>l
-
-" Close the current buffer
-map <leader>bd :Bclose<cr>:tabclose<cr>gT
-
-" Close all the buffers
-map <leader>ba :bufdo bd<cr>
-
-map <leader>l :bnext<cr>
-map <leader>h :bprevious<cr>
-
-" Useful mappings for managing tabs
-map <leader>tn :tabnew<cr>
-map <leader>to :tabonly<cr>
-map <leader>tc :tabclose<cr>
-map <leader>tm :tabmove 
-map <leader>t<leader> :tabnext 
-
-" Let 'tl' toggle between this and the last accessed tab
-let g:lasttab = 1
-nmap <Leader>tl :exe "tabn ".g:lasttab<CR>
-au TabLeave * let g:lasttab = tabpagenr()
-
-
-" Opens a new tab with the current buffer's path
-" Super useful when editing files in the same directory
-map <leader>te :tabedit <c-r>=expand("%:p:h")<cr>/
-
-" Switch CWD to the directory of the open buffer
-map <leader>cd :cd %:p:h<cr>:pwd<cr>
-
-" Specify the behavior when switching between buffers 
-try
-  set switchbuf=useopen,usetab,newtab
-  set stal=2
-catch
-endtry
-
-" Return to last edit position when opening files (You want this!)
-au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
-
-
-""""""""""""""""""""""""""""""
-" => Status line
-""""""""""""""""""""""""""""""
-" Always show the status line
-set laststatus=2
-
-" Format the status line
-set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ CWD:\ %r%{getcwd()}%h\ \ \ Line:\ %l\ \ Column:\ %c
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Editing mappings
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Remap VIM 0 to first non-blank character
-map 0 ^
-
-" Move a line of text using ALT+[jk] or Command+[jk] on mac
-nmap <M-j> mz:m+<cr>`z
-nmap <M-k> mz:m-2<cr>`z
-vmap <M-j> :m'>+<cr>`<my`>mzgv`yo`z
-vmap <M-k> :m'<-2<cr>`>my`<mzgv`yo`z
-
-if has("mac") || has("macunix")
-  nmap <D-j> <M-j>
-  nmap <D-k> <M-k>
-  vmap <D-j> <M-j>
-  vmap <D-k> <M-k>
+  HiLink cssPseudoClassId PreProc
+  HiLink cssPseudoClassLang Constant
+  HiLink cssValueNumber Number
+  HiLink cssFunction Constant
+  HiLink cssURL String
+  HiLink cssFunctionName Function
+  HiLink cssFunctionComma Function
+  HiLink cssColor Constant
+  HiLink cssIdentifier Function
+  HiLink cssInclude Include
+  HiLink cssIncludeKeyword atKeyword
+  HiLink cssImportant Special
+  HiLink cssBraces Function
+  HiLink cssBraceError Error
+  HiLink cssError Error
+  HiLink cssUnicodeEscape Special
+  HiLink cssStringQQ String
+  HiLink cssStringQ String
+  HiLink cssAttributeSelector String
+  HiLink cssMedia atKeyword
+  HiLink cssMediaType Special
+  HiLink cssMediaComma Normal
+  HiLink cssMediaKeyword Statement
+  HiLink cssMediaProp cssProp
+  HiLink cssMediaAttr cssAttr
+  HiLink cssPage atKeyword
+  HiLink cssPagePseudo PreProc
+  HiLink cssPageMargin atKeyword
+  HiLink cssPageProp cssProp
+  HiLink cssKeyFrame atKeyword
+  HiLink cssKeyFrameSelector Constant
+  HiLink cssFontDescriptor Special
+  HiLink cssFontDescriptorFunction Constant
+  HiLink cssFontDescriptorProp cssProp
+  HiLink cssFontDescriptorAttr cssAttr
+  HiLink cssUnicodeRange Constant
+  HiLink cssClassName Function
+  HiLink cssClassNameDot Function
+  HiLink cssProp StorageClass
+  HiLink cssAttr Constant
+  HiLink cssUnitDecorators Number
+  HiLink cssNoise Noise
+  HiLink atKeyword PreProc
+  delcommand HiLink
 endif
 
-" Delete trailing white space on save, useful for Python and CoffeeScript ;)
-func! DeleteTrailingWS()
-  exe "normal mz"
-  %s/\s\+$//ge
-  exe "normal `z"
-endfunc
-autocmd BufWrite *.py :call DeleteTrailingWS()
-autocmd BufWrite *.coffee :call DeleteTrailingWS()
+let b:current_syntax = "css"
 
+if main_syntax == 'css'
+  unlet main_syntax
+endif
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Ag searching and cope displaying
-"    requires ag.vim - it's much better than vimgrep/grep
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" When you press gv you Ag after the selected text
-vnoremap <silent> gv :call VisualSelection('gv', '')<CR>
-
-" Open Ag and put the cursor in the right position
-map <leader>g :Ag 
-
-" When you press <leader>r you can search and replace the selected text
-vnoremap <silent> <leader>r :call VisualSelection('replace', '')<CR>
-
-" Do :help cope if you are unsure what cope is. It's super useful!
-"
-" When you search with Ag, display your results in cope by doing:
-"   <leader>cc
-"
-" To go to the next search result do:
-"   <leader>n
-"
-" To go to the previous search results do:
-"   <leader>p
-"
-map <leader>cc :botright cope<cr>
-map <leader>co ggVGy:tabnew<cr>:set syntax=qf<cr>pgg
-map <leader>n :cn<cr>
-map <leader>p :cp<cr>
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Spell checking
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Pressing ,ss will toggle and untoggle spell checking
-map <leader>ss :setlocal spell!<cr>
-
-" Shortcuts using <leader>
-map <leader>sn ]s
-map <leader>sp [s
-map <leader>sa zg
-map <leader>s? z=
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Misc
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Remove the Windows ^M - when the encodings gets messed up
-noremap <Leader>m mmHmt:%s/<C-V><cr>//ge<cr>'tzt'm
-
-" Quickly open a buffer for scribble
-map <leader>q :e ~/buffer<cr>
-
-" Quickly open a markdown buffer for scribble
-map <leader>x :e ~/buffer.md<cr>
-
-" Toggle paste mode on and off
-map <leader>pp :setlocal paste!<cr>
-
-
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Helper functions
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-function! CmdLine(str)
-    exe "menu Foo.Bar :" . a:str
-    emenu Foo.Bar
-    unmenu Foo
-endfunction 
-
-function! VisualSelection(direction, extra_filter) range
-    let l:saved_reg = @"
-    execute "normal! vgvy"
-
-    let l:pattern = escape(@", '\\/.*$^~[]')
-    let l:pattern = substitute(l:pattern, "\n$", "", "")
-
-    if a:direction == 'gv'
-        call CmdLine("Ag \"" . l:pattern . "\" " )
-    elseif a:direction == 'replace'
-        call CmdLine("%s" . '/'. l:pattern . '/')
-    endif
-
-    let @/ = l:pattern
-    let @" = l:saved_reg
-endfunction
-
-
-" Returns true if paste mode is enabled
-function! HasPaste()
-    if &paste
-        return 'PASTE MODE  '
-    endif
-    return ''
-endfunction
-
-" Don't close window, when deleting a buffer
-command! Bclose call <SID>BufcloseCloseIt()
-function! <SID>BufcloseCloseIt()
-   let l:currentBufNum = bufnr("%")
-   let l:alternateBufNum = bufnr("#")
-
-   if buflisted(l:alternateBufNum)
-     buffer #
-   else
-     bnext
-   endif
-
-   if bufnr("%") == l:currentBufNum
-     new
-   endif
-
-   if buflisted(l:currentBufNum)
-     execute("bdelete! ".l:currentBufNum)
-   endif
-endfunction
-
-" Make VIM remember position in file after reopen
-" if has("autocmd")
-"   au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
-"endif
-
-" react jsx
-let g:jsx_ext_required = 0
+let &cpo = s:cpo_save
+unlet s:cpo_save
+" vim: ts=8
