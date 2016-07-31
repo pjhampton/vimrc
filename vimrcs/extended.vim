@@ -48,6 +48,7 @@ au Syntax * RainbowParenthesesLoadBraces
 map <leader>e :e! ~/.vim_runtime/my_configs.vim<cr>
 autocmd! bufwritepost vimrc source ~/.vim_runtime/my_configs.vim
 
+nmap <leader>ne :NERDTreeToggle<cr>
 nmap <leader>hn :HackerNews<cr>
 nmap <leader>rp :RainbowParenthesesToggle<cr>
 
