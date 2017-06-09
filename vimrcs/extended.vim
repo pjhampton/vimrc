@@ -121,7 +121,9 @@ iab xdate <c-r>=strftime("%d/%m/%y %H:%M:%S")<cr>
 autocmd FileType css set omnifunc=csscomplete#CompleteCSS
 autocmd FileType java setlocal omnifunc=javacomplete#Complete
 
-
+let g:indent_guides_auto_colors = 0
+autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  guibg=red   ctermbg=3
+autocmd VimEnter,Colorscheme * :hi IndentGuidesEven guibg=green ctermbg=4
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
