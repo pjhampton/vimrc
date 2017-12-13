@@ -47,6 +47,7 @@ au Syntax * RainbowParenthesesLoadBraces
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 map <leader>e :e! ~/.vim_runtime/my_configs.vim<cr>
 autocmd! bufwritepost vimrc source ~/.vim_runtime/my_configs.vim
+autocmd FileType java setlocal omnifunc=javacomplete#Complete
 
 nmap <leader>ne :NERDTreeToggle<cr>
 nmap <leader>hn :HackerNews<cr>
